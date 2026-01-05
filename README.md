@@ -57,7 +57,98 @@ free -h && uptime
 
 **Look for:** Consistently high memory/CPU usage
 
-### 1.4 Docker Cleanup (Important for Coolify)
+### 1.4 Temporary Files Cleanup
+
+```bash
+# Clear temporary files
+sudo rm -rf /tmp/*
+
+# Clear user cache
+sudo rm -rf ~/.cache/*
+```
+
+**Note:** Safe to run monthly. These files are meant to be temporary.
+
+### 1.5 Remove Unused Packages & Dependencies
+
+```bash
+# Remove unneeded dependencies
+sudo apt autoremove -y
+
+# Delete old package archives
+sudo apt autoclean
+
+# Remove all downloaded package files
+sudo apt clean
+```
+
+**What each command does:**
+- `autoremove` - Removes packages that were installed as dependencies but are no longer needed
+- `autoclean` - Deletes old versions of downloaded package files
+- `clean` - Removes all downloaded package files from cache
+
+### 1.6 Clean Old Logs
+
+```bash
+# Check current log size
+sudo journalctl --disk-usage
+
+# Keep logs for only 7 days
+sudo journalctl --vacuum-time=7d
+
+# Or limit log size to 100MB
+sudo journalctl --vacuum-size=100M
+```
+
+**Optional - Clear all logs (use with caution):**
+
+```bash
+sudo rm -rf /var/log/*.log
+sudo rm -rf /var/log/*.gz
+```
+
+**Warning:** Only clear logs if you don't need them for debugging. Consider keeping at least 7 days of logs.
+
+### 1.7 Find and Remove Large Files
+
+```bash
+# Find files over 1GB
+sudo find / -type f -size +1G 2>/dev/null
+
+# Find files over 500MB
+sudo find / -type f -size +500M 2>/dev/null
+
+# Find files over 100MB (more results)
+sudo find / -type f -size +100M 2>/dev/null
+```
+
+**To delete a large file:**
+
+```bash
+# Only after confirming the file is not needed!
+rm -rf /path/to/large/file
+```
+
+**Warning:** Always verify what the file is before deleting. Never delete system files or database files.
+
+### 1.8 Remove Old Snap Packages (If Using Snap)
+
+```bash
+# Check snap disk usage
+sudo du -sh /var/lib/snapd/snaps
+
+# List installed snaps
+snap list --all
+
+# Remove disabled/old snap versions
+sudo snap list --all | awk '/disabled/{print $1, $3}' | while read snapname revision; do
+    sudo snap remove "$snapname" --revision="$revision"
+done
+```
+
+**Note:** Snap keeps old versions for rollback. This removes old versions while keeping the current one.
+
+### 1.9 Docker Cleanup (Important for Coolify)
 
 ```bash
 # Check Docker disk usage before cleanup
@@ -71,6 +162,8 @@ docker system df
 ```
 
 **Note:** This removes unused images, containers, and volumes. Make sure no important stopped containers exist.
+
+---
 
 ---
 
@@ -197,6 +290,10 @@ docker system df
 - **Name/IP:** _________
 - [ ] System updated
 - [ ] Disk usage: ____% 
+- [ ] Temp files cleaned
+- [ ] Unused packages removed
+- [ ] Old logs cleaned
+- [ ] Large files checked
 - [ ] Docker cleaned
 - [ ] Backups verified
 - **Notes:**
@@ -207,6 +304,10 @@ docker system df
 - **Name/IP:** _________
 - [ ] System updated
 - [ ] Disk usage: ____%
+- [ ] Temp files cleaned
+- [ ] Unused packages removed
+- [ ] Old logs cleaned
+- [ ] Large files checked
 - [ ] Docker cleaned
 - [ ] Backups verified
 - **Notes:**
@@ -286,6 +387,32 @@ uptime
 
 # Check if reboot needed
 cat /var/run/reboot-required
+
+# Clear temporary files
+sudo rm -rf /tmp/*
+
+# Clear user cache
+sudo rm -rf ~/.cache/*
+```
+
+### Cleanup Commands
+
+```bash
+# Remove unused packages
+sudo apt autoremove -y
+sudo apt autoclean
+sudo apt clean
+
+# Clean old logs (keep 7 days)
+sudo journalctl --vacuum-time=7d
+
+# Find large files (over 1GB)
+sudo find / -type f -size +1G 2>/dev/null
+
+# Remove old snap versions
+sudo snap list --all | awk '/disabled/{print $1, $3}' | while read snapname revision; do
+    sudo snap remove "$snapname" --revision="$revision"
+done
 ```
 
 ### Docker / Coolify
@@ -345,12 +472,12 @@ ping google.com
 
 | Task | Estimated Time |
 |------|----------------|
-| Hetzner servers (both) | 15-20 min |
+| Hetzner servers (both) | 20-30 min |
 | Coolify dashboard | 5-10 min |
 | Google Cloud Run | 5-10 min |
 | Cloudflare | 5 min |
 | Backups verification | 5 min |
-| **Total** | **~45 min** |
+| **Total** | **~50-60 min** |
 
 ---
 
